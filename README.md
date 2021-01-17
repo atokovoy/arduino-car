@@ -1,2 +1,2 @@
-# arduino-fwd-car
+# arduino-car
 A simple Arduino 4wd car
