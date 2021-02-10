@@ -3,6 +3,7 @@
 #include <IRremote.h>
 #include "MotorEngine.h"
 #include "MusicBox.h"
+#include "Register.h"
 
 /* 
  * UP - FF18E7
@@ -17,7 +18,11 @@
  * Echo  - 1
  * trigger - 0
  */
-/***** 7 8 12 ******/
+/***** 
+7 latch
+13 clock
+8 data
+******/
 // Motor A connections
 #define IN1 7
 #define IN2 8
@@ -39,15 +44,18 @@
 #define BTN_SHARP 0xFFB04F
 
 IRrecv irReceiver(IR);
-MotorEngine motorEngine(IN1, IN2, IN3, IN4);
-MusicBox musicBox(SPK);
+Register reg(8, 7, 13, 2);
+//MotorEngine motorEngine(IN1, IN2, IN3, IN4);
+//MusicBox musicBox(SPK);
+MotorEngine motorEngine(&reg, 1, 2, 3, 4);
+MusicBox musicBox(&reg, 0);
 
 void setup() {
-  motorEngine.stopMotors();
+  //motorEngine.stopMotors();
   
   Serial.begin(9600);
   irReceiver.enableIRIn();  // Start the receiver
-  irReceiver.blink13(true);
+  irReceiver.blink13(true);  
 }
 
 void loop() {
@@ -63,6 +71,8 @@ void loop() {
       case BTN_SHARP: musicBox.sound1(); break;
       default: motorEngine.repeat(); break;
     }
+
+    if (tCode == BTN_SHARP) {musicBox.sound1();}
     
     Serial.println(tCode, HEX);
     irReceiver.resume(); // Receive the next value

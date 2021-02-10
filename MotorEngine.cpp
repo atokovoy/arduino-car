@@ -14,52 +14,76 @@ MotorEngine::MotorEngine(int in1, int in2, int in3, int in4)
   _lastOperation = NULL;
   _movementAutoStop = 500;
   _rotationAutoStop = 200;
+  _reg = NULL;
+}
+
+MotorEngine::MotorEngine(Register* reg, int in1, int in2, int in3, int in4)
+{
+  _in1 = in1;
+  _in2 = in2;
+  _in3 = in3;
+  _in4 = in4;
+  _lastOperation = NULL;
+  _movementAutoStop = 500;
+  _rotationAutoStop = 200;
+  _reg = reg;
+}
+
+void MotorEngine::digital(int pin, int val)
+{
+  if (NULL == _reg) {
+    digitalWrite(pin, val);
+
+    return;
+  }
+
+  _reg->digital(pin, val);
 }
 
 void MotorEngine::stopMotors() {
-  digitalWrite(_in1, LOW);
-  digitalWrite(_in2, LOW);
-  digitalWrite(_in3, LOW);
-  digitalWrite(_in4, LOW);
+  digital(_in1, LOW);
+  digital(_in2, LOW);
+  digital(_in3, LOW);
+  digital(_in4, LOW);
 
   _lastOperation = &MotorEngine::stopMotors;
 }
 
 void MotorEngine::moveBackward() {
-  digitalWrite(_in1, HIGH);
-  digitalWrite(_in2, LOW);
-  digitalWrite(_in3, HIGH);
-  digitalWrite(_in4, LOW);
+  digital(_in1, HIGH);
+  digital(_in2, LOW);
+  digital(_in3, HIGH);
+  digital(_in4, LOW);
 
   _lastOperation = &MotorEngine::moveBackward;
   _autoStopMillis = millis() + _movementAutoStop;
 }
 
 void MotorEngine::moveForward() {
-  digitalWrite(_in1, LOW);
-  digitalWrite(_in2, HIGH);
-  digitalWrite(_in3, LOW);
-  digitalWrite(_in4, HIGH);
+  digital(_in1, LOW);
+  digital(_in2, HIGH);
+  digital(_in3, LOW);
+  digital(_in4, HIGH);
 
   _lastOperation = &MotorEngine::moveForward;
   _autoStopMillis = millis() + _movementAutoStop;
 }
 
 void MotorEngine::turnLeft() {
-  digitalWrite(_in1, LOW);
-  digitalWrite(_in2, HIGH);
-  digitalWrite(_in3, HIGH);
-  digitalWrite(_in4, LOW);
+  digital(_in1, LOW);
+  digital(_in2, HIGH);
+  digital(_in3, HIGH);
+  digital(_in4, LOW);
 
   _lastOperation = &MotorEngine::turnLeft;
   _autoStopMillis = millis() + _rotationAutoStop;
 }
 
 void MotorEngine::turnRight() {
-  digitalWrite(_in1, HIGH);
-  digitalWrite(_in2, LOW);
-  digitalWrite(_in3, LOW);
-  digitalWrite(_in4, HIGH);
+  digital(_in1, HIGH);
+  digital(_in2, LOW);
+  digital(_in3, LOW);
+  digital(_in4, HIGH);
 
   _lastOperation = &MotorEngine::turnRight;
   _autoStopMillis = millis() + _rotationAutoStop;

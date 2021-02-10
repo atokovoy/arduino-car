@@ -2,11 +2,13 @@
 #define MUSICBOX_H
 
 #include <Arduino.h>
+#include "Register.h"
 
 class MusicBox
 {
   public:
     MusicBox(int out);
+    MusicBox(Register *reg, int out);
     void sound1();
   private:
     int noteDurationSec(int noteType);
@@ -15,6 +17,7 @@ class MusicBox
     void myTone(byte pin, uint16_t frequency, uint16_t duration);
   
     int _out;
+    Register* _reg;
 };
 
 #define NOTE_B0  31

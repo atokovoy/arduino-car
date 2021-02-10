@@ -2,6 +2,12 @@
 
 MusicBox::MusicBox(int out) {
   _out = out;
+  _reg = NULL;
+}
+
+MusicBox::MusicBox(Register *reg, int out) {
+  _out = out;
+  _reg = reg;
 }
 
 int MusicBox::noteDurationSec(int noteType) {
@@ -20,15 +26,26 @@ void MusicBox::myTone(byte pin, uint16_t frequency, uint16_t duration)
 { // input parameters: Arduino pin number, frequency in Hz, duration in milliseconds
   unsigned long startTime = millis();
   unsigned long halfPeriod= 1000000L / frequency / 2;
-  pinMode(pin, OUTPUT);
-  while (millis() - startTime < duration) {
-    digitalWrite(pin, HIGH);
-    delayMicroseconds(halfPeriod);
-    digitalWrite(pin, LOW);
-    delayMicroseconds(halfPeriod);
+  if (NULL == _reg) {
+    pinMode(pin, OUTPUT);
+    while (millis() - startTime < duration) {
+      digitalWrite(pin, HIGH);
+      delayMicroseconds(halfPeriod);
+      digitalWrite(pin, LOW);
+      delayMicroseconds(halfPeriod);
+    }
+    
+    pinMode(pin, INPUT);
+
+    return;
   }
-  
-  pinMode(pin, INPUT);
+
+  while (millis() - startTime < duration) {
+      _reg->digital(pin, HIGH);
+      delayMicroseconds(halfPeriod);
+      _reg->digital(pin, LOW);
+      delayMicroseconds(halfPeriod);
+    }
 }
 
 void MusicBox::play(int notes[], int tempo[]) {

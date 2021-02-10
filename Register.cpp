@@ -31,10 +31,6 @@ void Register::shiftData() {
   digitalWrite(_latchPin, LOW);
 
   for (short i = _numCells - 1; i >= 0; i--) {
-    Serial.print("Item ");
-    Serial.print(i);
-    Serial.print(": ");
-    Serial.println(arrayToByte(_data[i]));
     shiftOut(_dataPin, _clockPin, MSBFIRST, arrayToByte(_data[i]));
   }
   
