@@ -1,38 +1,24 @@
-//#define IR_USE_TIMER1
-
 #include <IRremote.h>
+#include <NewPing.h>
 #include "MotorEngine.h"
 #include "MusicBox.h"
 #include "Register.h"
 
-/* 
- * UP - FF18E7
- * REPEAT - FFFFFFFF
- * DOWN - FF4AB5
- * LEFT - FF10EF
- * RIGHT - FF5AA5
- * STOP(*) - FF6897
- * SHARP - FFB04F
- * 
- * Audio - 2
- * Echo  - 1
- * trigger - 0
- */
-/***** 
-7 latch
-13 clock
-8 data
-******/
 // Motor A connections
-#define IN1 7
-#define IN2 8
+#define IN1 1
+#define IN2 2
 
 // Motor B connections
-#define IN3 11
+#define IN3 3
 #define IN4 4
 
 // Audio
-#define SPK 2
+#define SPK 3
+
+// Register
+#define LATCH 7
+#define CLOCK 13
+#define DATA 8
 
 // IR sensor
 #define IR 12
@@ -43,40 +29,62 @@
 #define BTN_STAR 0xFF6897
 #define BTN_SHARP 0xFFB04F
 
+// Echo back
+#define ECHO_BACK 4
+#define TRIGGER_BACK 2
+#define MAX_SONAR_DISTANCE 100
+#define BACK_DISTANCE_LIMIT 20
+#define BACK_DISTANCE_RUN_AWAY 40
+
 IRrecv irReceiver(IR);
-Register reg(8, 7, 13, 2);
-//MotorEngine motorEngine(IN1, IN2, IN3, IN4);
-//MusicBox musicBox(SPK);
-MotorEngine motorEngine(&reg, 1, 2, 3, 4);
-MusicBox musicBox(&reg, 0);
+Register reg(DATA, LATCH, CLOCK, 2);
+MusicBox musicBox(new DigitalPin(SPK));
+MotorEngine motorEngine(new RegisterPin(&reg, IN1), new RegisterPin(&reg, IN2), new RegisterPin(&reg, IN3), new RegisterPin(&reg, IN4));
+
+NewPing sonar(TRIGGER_BACK, ECHO_BACK, MAX_SONAR_DISTANCE);
 
 void setup() {
-  //motorEngine.stopMotors();
-  
   Serial.begin(9600);
-  irReceiver.enableIRIn();  // Start the receiver
-  irReceiver.blink13(true);  
+  irReceiver.enableIRIn();
+  irReceiver.blink13(true);
+  randomSeed(analogRead(0));
 }
 
 void loop() {
+  double backDistance = sonar.ping_cm();
+  if (backDistance == 0) {
+    backDistance = 100000;
+  }
+  Serial.print("Distance: ");
+  Serial.print(backDistance);
+  Serial.println(" cm");
+
+  motorEngine.checkAutoStop();
+  
   if (irReceiver.decode()) {
     uint32_t tCode = irReceiver.results.value;
 
     switch (tCode) {
       case BTN_UP: motorEngine.moveForward(); break;
-      case BTN_DOWN: motorEngine.moveBackward(); break;
+      case BTN_DOWN:
+        if (backDistance > BACK_DISTANCE_LIMIT) {
+          motorEngine.moveBackward();
+        }
+        break;
       case BTN_LEFT: motorEngine.turnLeft(); break;
       case BTN_RIGHT: motorEngine.turnRight(); break;
       case BTN_STAR: motorEngine.stopMotors(); break;
-      case BTN_SHARP: musicBox.sound1(); break;
+      case BTN_SHARP: musicBox.beep(); break;
       default: motorEngine.repeat(); break;
     }
-
-    if (tCode == BTN_SHARP) {musicBox.sound1();}
     
     Serial.println(tCode, HEX);
     irReceiver.resume(); // Receive the next value
+  } else if (backDistance < BACK_DISTANCE_RUN_AWAY) {
+    Serial.println("Run away!");
+    
+    motorEngine.moveForward();
+    delay(1000);
+    motorEngine.rotate(random(360) - 180);
   }
-  
-  motorEngine.checkAutoStop();
 }

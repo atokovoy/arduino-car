@@ -2,35 +2,33 @@
 #define MOTORENGINE_H
 
 #include <Arduino.h>
-#include "Register.h"
+#include "Pin.h"
 
 class MotorEngine
 {
   public:
-    MotorEngine(int in1, int in2, int in3, int in4);
-    MotorEngine(Register* reg, int in1, int in2, int in3, int in4);
+    MotorEngine(Pin* in1, Pin* in2, Pin* in3, Pin* in4);
     void moveForward();
     void moveBackward();
     void turnLeft();
     void turnRight();
     void stopMotors();
+    void rotate(short grad);
     void repeat();
     void checkAutoStop();
     void setMovementAutoStop(int autoStop);
     void setRotationAutoStop(int autoStop);
   private:
     typedef void (MotorEngine::*CallbackOperation) ();
-    void digital(int pin, int val);
     
-    int _in1;
-    int _in2;
-    int _in3;
-    int _in4;
+    Pin* _in1;
+    Pin* _in2;
+    Pin* _in3;
+    Pin* _in4;
     CallbackOperation _lastOperation;
     unsigned long _autoStopMillis;
     int _movementAutoStop;
     int _rotationAutoStop;
-    Register* _reg;
 };
 
 #endif

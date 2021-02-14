@@ -2,22 +2,18 @@
 #define MUSICBOX_H
 
 #include <Arduino.h>
-#include "Register.h"
+#include "Pin.h"
 
 class MusicBox
 {
   public:
-    MusicBox(int out);
-    MusicBox(Register *reg, int out);
+    MusicBox(Pin *pin);
     void sound1();
+    void beep();
   private:
-    int noteDurationSec(int noteType);
-    void pauseBetweenNotes(int duration);
-    void play(int notes[], int tempo[]);
-    void myTone(byte pin, uint16_t frequency, uint16_t duration);
-  
-    int _out;
-    Register* _reg;
+    void play(int notes[], int tempo[], byte len);
+    
+    Pin* _pin;
 };
 
 #define NOTE_B0  31
