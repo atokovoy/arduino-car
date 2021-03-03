@@ -29,6 +29,7 @@ class MotorEngine
     unsigned long _autoStopMillis;
     int _movementAutoStop;
     int _rotationAutoStop;
+    bool _stopped;
 };
 
 #endif

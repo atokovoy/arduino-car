@@ -9,59 +9,83 @@ Register::Register(int dataPin, int latchPin, int clockPin, byte numCells) {
   _latchPin = latchPin;
   _clockPin = clockPin;
   _numCells = numCells;
+  _batch = false;
 
-  _data = new byte*[numCells];
-  for (byte i = 0; i < numCells; ++i) {
-    _data[i] = new byte[8](); //default to zero
-  }
+  _data = new byte[numCells]();
   
   shiftData();
-}
-
-byte Register::arrayToByte(byte arr[8]) {
-  byte res = 0;
-  for (byte i = 0; i < 8; i++) {
-    res = res + arr[i] * ceil(pow(2, i));
-  }
-
-  return res;
 }
 
 void Register::shiftData() {
   digitalWrite(_latchPin, LOW);
 
   for (short i = _numCells - 1; i >= 0; i--) {
-    shiftOut(_dataPin, _clockPin, MSBFIRST, arrayToByte(_data[i]));
+    shiftOut(_dataPin, _clockPin, MSBFIRST, _data[i]);
   }
   
   digitalWrite(_latchPin, HIGH);
+
+  _batch = false;
 }
 
-void Register::digital(byte pin, int val) {
+void Register::setCellValue(byte pin, int val) {
   byte row = ceil(pin / 8);
+  byte old = _data[row];
 
-  _data[row][pin - row * 8] = val;
+  bitWrite(old, pin - row * 8, val);
+  _data[row] = old;
+}
+
+void Register::reset() {
+  for (byte i = 0; i < _numCells; ++i) {
+      _data[i] = 0;
+  }
 
   shiftData();
 }
 
+void Register::digital(byte pin, int val) {
+  setCellValue(pin, val);
+
+  if (false == _batch) {
+    shiftData();
+  }
+}
+
+void Register::digital(byte pinArr[], bool valArr[], byte numItems) {
+  for (byte i = 0; i < numItems; i++) {
+    setCellValue(pinArr[i], valArr[i]);
+  }
+
+  if (false == _batch) {
+    shiftData();
+  }
+}
+
 void Register::printData() {
+  Serial.print("Num cells: ");
+  Serial.println(_numCells);
+  Serial.println("      01234567");
+  Serial.println("      --------");
   for (byte i = 0; i < _numCells; i++) {
     Serial.print("R ");
     Serial.print(i);
     Serial.print(" : ");
     for (byte j = 0; j < 8; j++) {
-      Serial.print(_data[i][j]);
+        bool b = bitRead(_data[i], j);
+        Serial.print(b);
     }
     Serial.println();
   }
 }
 
-void Register::reset() {
-  for (byte i = 0; i < _numCells; ++i) {
-    for (byte j = 0; j < 8; j++) {
-      _data[i][j] = 0;
-    }
+void Register::startBatch() {
+  _batch = true;
+}
+
+void Register::applyBatch() {
+  if (false == _batch) {
+    return;
   }
 
   shiftData();

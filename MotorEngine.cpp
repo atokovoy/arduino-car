@@ -9,15 +9,21 @@ MotorEngine::MotorEngine(Pin* in1, Pin* in2, Pin* in3, Pin* in4)
   _lastOperation = NULL;
   _movementAutoStop = 500;
   _rotationAutoStop = 200;
+  _stopped = true;
 }
 
 void MotorEngine::stopMotors() {
+  if (_stopped) {
+    return;
+  }
+  
   _in1->write(LOW);
   _in2->write(LOW);
   _in3->write(LOW);
   _in4->write(LOW);
 
   _lastOperation = &MotorEngine::stopMotors;
+  _stopped = true;
 }
 
 void MotorEngine::moveBackward() {
@@ -28,6 +34,7 @@ void MotorEngine::moveBackward() {
 
   _lastOperation = &MotorEngine::moveBackward;
   _autoStopMillis = millis() + _movementAutoStop;
+  _stopped = false;
 }
 
 void MotorEngine::moveForward() {
@@ -38,6 +45,7 @@ void MotorEngine::moveForward() {
 
   _lastOperation = &MotorEngine::moveForward;
   _autoStopMillis = millis() + _movementAutoStop;
+  _stopped = false;
 }
 
 void MotorEngine::turnLeft() {
@@ -48,6 +56,7 @@ void MotorEngine::turnLeft() {
 
   _lastOperation = &MotorEngine::turnLeft;
   _autoStopMillis = millis() + _rotationAutoStop;
+  _stopped = false;
 }
 
 void MotorEngine::turnRight() {
@@ -58,6 +67,7 @@ void MotorEngine::turnRight() {
 
   _lastOperation = &MotorEngine::turnRight;
   _autoStopMillis = millis() + _rotationAutoStop;
+  _stopped = false;
 }
 
 void MotorEngine::repeat() {

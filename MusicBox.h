@@ -7,7 +7,7 @@
 class MusicBox
 {
   public:
-    MusicBox(Pin *pin);
+    MusicBox(Pin* pin);
     void sound1();
     void beep();
   private:

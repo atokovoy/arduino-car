@@ -1,6 +1,6 @@
 #include "MusicBox.h"
 
-MusicBox::MusicBox(Pin *pin) {
+MusicBox::MusicBox(Pin* pin) {
   _pin = pin;
 }
 
